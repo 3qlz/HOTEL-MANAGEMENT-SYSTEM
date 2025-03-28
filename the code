@@ -1,6 +1,6 @@
-from datetime import date
+from datetime import date, datetime, timedelta
 from typing import List, Set
-
+import uuid
 
 # ===============================
 # Guest Class
@@ -70,6 +70,10 @@ class Booking:
     def cancel(self):
         self._status = "cancelled"
 
+    @property
+    def booking_id(self) -> str:
+        return self._booking_id
+
     def __str__(self):
         return f"Booking {self._booking_id}: {self._room} from {self._checkin} to {self._checkout} [{self._status}]"
 
@@ -126,3 +130,57 @@ class ServiceRequest:
 
     def __str__(self):
         return f"Request {self._request_id} | {self._service_type} for {self._guest_email} on {self._request_date} [{self._status}]"
+
+
+# ===============================
+# Main Program Demo
+# ===============================
+def main():
+    print("=== Royal Stay Hotel Management System Demo ===")
+
+    # Create a guest
+    guest = Guest("Hamdan Albedwawi", "hamdan@example.com", "0501234567")
+    print(f"Guest created: {guest}")
+
+    # Create a room
+    room = Room(101, "double", 350.0, ["WiFi", "TV", "Mini-Bar"])
+    print(f"Room created: {room}")
+
+    # Book a room
+    checkin = date.today()
+    checkout = checkin + timedelta(days=3)
+    booking_id = str(uuid.uuid4())[:8]
+    booking = Booking(booking_id, room, checkin, checkout)
+
+    if room.book_dates(checkin, checkout):
+        guest.add_booking(booking)
+        print(f"Booking confirmed: {booking}")
+    else:
+        print("Room is not available for selected dates.")
+
+    # Generate invoice
+    invoice = Invoice(str(uuid.uuid4())[:8], booking, additional_charges=50.0, discount=20.0)
+    print("\nInvoice Details:")
+    print(invoice)
+
+    # Process payment
+    payment = Payment(str(uuid.uuid4())[:8], invoice, "credit_card")
+    payment.process_payment()
+    print("\nPayment Status:")
+    print(payment)
+
+    # Service request
+    service = ServiceRequest(str(uuid.uuid4())[:8], guest._email, "room_service", checkin)
+    print("\nService Requested:")
+    print(service)
+    service.mark_completed()
+    print(f"Service after completion: {service}")
+
+    # Show booking history
+    print("\nReservation History:")
+    for b in guest.get_booking_history():
+        print(b)
+
+
+if __name__ == "__main__":
+    main()
