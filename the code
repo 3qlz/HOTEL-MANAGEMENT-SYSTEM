@@ -1,260 +1,116 @@
-# HOTEL-MANAGEMENT-SYSTEM
-# room.py
 from datetime import date
 from typing import List, Dict, Any, Set
 
-
 class Room:
-
+    """
     Class representing a hotel room in the Royal Stay Hotel Management System.
-    
-    This class manages room information including room details, pricing, and availability.
-    
-    Attributes:
-        roomnumber (int): Unique identifier/number for the room
-        roomtype (str): Type of room (e.g., single, double, suite)
-        amenities (List[str]): List of amenities available in the room
-        pricepernight (float): Base price per night
-        isavailable (bool): Current availability status
-        bookeddates (Set[date]): Set of dates when the room is booked
 
-    
-    # Valid room types
-    VALIDROOMTYPES = {"single", "double", "twin", "suite", "deluxe", "executive"}
-    
-    # Common amenities
-    COMMONAMENITIES = {
-        "wifi", "tv", "airconditioning", "minibar", "safe", "bathroom", 
+    This class manages room information including room details, pricing, and availability.
+    """
+
+    VALID_ROOM_TYPES = {"single", "double", "twin", "suite", "deluxe", "executive"}
+    COMMON_AMENITIES = {
+        "wifi", "tv", "airconditioning", "minibar", "safe", "bathroom",
         "bathtub", "shower", "hairdryer", "roomservice", "coffeemaker"
     }
-    
-    def init(self, roomnumber: int, roomtype: str, pricepernight: float, 
-                 amenities: List[str] = None) -> None:
-    
-        Initialize a new Room object with the given details.
-        
-        Args:
-            roomnumber: Unique identifier/number for the room
-            roomtype: Type of room (e.g., single, double, suite)
-            pricepernight: Base price per night
-            amenities: List of amenities available in the room (optional)
-            
-        Raises:
-            ValueError: If roomtype is not valid or pricepernight is negative
-    
-        self.roomnumber = roomnumber
-        
-        # Validate room type
-        roomtype = roomtype.lower()
-        if roomtype not in self.VALIDROOMTYPES:
-            raise ValueError(f"Invalid room type. Must be one of: {', '.join(self.VALIDROOMTYPES)}")
-        self.roomtype = roomtype
-        
-        # Validate price
-        if pricepernight < 0:
+
+    def __init__(self, room_number: int, room_type: str, price_per_night: float, amenities: List[str] = None) -> None:
+        if room_type.lower() not in self.VALID_ROOM_TYPES:
+            raise ValueError(f"Invalid room type. Must be one of: {', '.join(self.VALID_ROOM_TYPES)}")
+        if price_per_night < 0:
             raise ValueError("Price per night cannot be negative")
-        self.pricepernight = pricepernight
-        
-        # Initialize amenities
-        self.amenities = amenities if amenities else []
-        
-        # Initialize availability
-        self.isavailable = True
-        self.bookeddates = set()
-    
+
+        self._room_number = room_number
+        self._room_type = room_type.lower()
+        self._price_per_night = price_per_night
+        self._amenities = amenities if amenities else []
+        self._is_available = True
+        self._booked_dates = set()
+
     @property
-    def roomnumber(self) -> int:
-    Get the room number."""
-        return self.roomnumber
-    
+    def room_number(self) -> int:
+        return self._room_number
+
     @property
-    def roomtype(self) -> str:
-    Get the room type."""
-        return self.roomtype
-    
-    @roomtype.setter
-    def roomtype(self, value: str) -> None:
-    
-        Set the room type.
-        
-        Args:
-            value: New room type
-            
-        Raises:
-            ValueError: If the room type is not valid
-    
+    def room_type(self) -> str:
+        return self._room_type
+
+    @room_type.setter
+    def room_type(self, value: str) -> None:
         value = value.lower()
-        if value not in self.VALIDROOMTYPES:
-            raise ValueError(f"Invalid room type. Must be one of: {', '.join(self.VALIDROOMTYPES)}")
-        self.roomtype = value
-    
+        if value not in self.VALID_ROOM_TYPES:
+            raise ValueError(f"Invalid room type. Must be one of: {', '.join(self.VALID_ROOM_TYPES)}")
+        self._room_type = value
+
     @property
     def amenities(self) -> List[str]:
-    Get the room amenities."""
-        return self.amenities.copy()
-    
-    def addamenity(self, amenity: str) -> None:
-    
-        Add an amenity to the room.
-        
-        Args:
-            amenity: The amenity to add
-    
+        return self._amenities.copy()
+
+    def add_amenity(self, amenity: str) -> None:
         amenity = amenity.lower()
-        if amenity not in self.amenities:
-            self.amenities.append(amenity)
-    
-    def removeamenity(self, amenity: str) -> bool:
-    
-        Remove an amenity from the room.
-        
-        Args:
-            amenity: The amenity to remove
-            
-        Returns:
-            bool: True if amenity was removed, False if not found
-    
+        if amenity not in self._amenities:
+            self._amenities.append(amenity)
+
+    def remove_amenity(self, amenity: str) -> bool:
         amenity = amenity.lower()
-        if amenity in self.amenities:
-            self.amenities.remove(amenity)
+        if amenity in self._amenities:
+            self._amenities.remove(amenity)
             return True
         return False
-    
+
     @property
-    def pricepernight(self) -> float:
-    Get the price per night."""
-        return self.pricepernight
-    
-    @pricepernight.setter
-    def pricepernight(self, value: float) -> None:
-    
-        Set the price per night.
-        
-        Args:
-            value: New price per night
-            
-        Raises:
-            ValueError: If the price is negative
-    
+    def price_per_night(self) -> float:
+        return self._price_per_night
+
+    @price_per_night.setter
+    def price_per_night(self, value: float) -> None:
         if value < 0:
             raise ValueError("Price per night cannot be negative")
-        self.pricepernight = value
-    
+        self._price_per_night = value
+
     @property
-    def isavailable(self) -> bool:
-    Get the current availability status."""
-        return self.isavailable
-    
-    @isavailable.setter
-    def isavailable(self, value: bool) -> None:
-    Set the availability status."""
-        self.isavailable = value
-    
-    def bookdates(self, checkin: date, checkout: date) -> bool:
-    
-        Book the room for a specific date range.
-        
-        Args:
-            checkin: Check-in date
-            checkout: Check-out date
-            
-        Returns:
-            bool: True if booking is successful, False if there's a conflict
-            
-        Raises:
-            ValueError: If checkout is before or equal to checkin
-    
+    def is_available(self) -> bool:
+        return self._is_available
+
+    @is_available.setter
+    def is_available(self, value: bool) -> None:
+        self._is_available = value
+
+    def book_dates(self, checkin: date, checkout: date) -> bool:
         if checkout <= checkin:
             raise ValueError("Check-out date must be after check-in date")
-        
-        # Generate all dates in the range
-        currentdate = checkin
-        datestobook = set()
-        
-        while currentdate < checkout:
-            datestobook.add(currentdate)
-            currentdate = date.fromordinal(currentdate.toordinal() + 1)
-        
-        # Check for conflicts
-        if datestobook.intersection(self.bookeddates):
+        dates_to_book = {date.fromordinal(i) for i in range(checkin.toordinal(), checkout.toordinal())}
+        if dates_to_book & self._booked_dates:
             return False
-        
-        # Book the dates
-        self.bookeddates.update(datestobook)
+        self._booked_dates.update(dates_to_book)
         return True
-    
-    def cancelbooking(self, checkin: date, checkout: date) -> bool:
-    
-        Cancel a booking for a specific date range.
-        
-        Args:
-            checkin: Check-in date
-            checkout: Check-out date
-            
-        Returns:
-            bool: True if cancellation is successful
-    
+
+    def cancel_booking(self, checkin: date, checkout: date) -> bool:
         if checkout <= checkin:
             raise ValueError("Check-out date must be after check-in date")
-        
-        # Generate all dates in the range
-        currentdate = checkin
-        datestocancel = set()
-        
-        while currentdate < checkout:
-            datestocancel.add(currentdate)
-            currentdate = date.fromordinal(currentdate.toordinal() + 1)
-        
-        # Remove the dates from booked dates
-        self.bookeddates -= datestocancel
+        dates_to_cancel = {date.fromordinal(i) for i in range(checkin.toordinal(), checkout.toordinal())}
+        self._booked_dates -= dates_to_cancel
         return True
-    
-    def isavailablefordates(self, checkin: date, checkout: date) -> bool:
-    
-        Check if the room is available for a specific date range.
-        
-        Args:
-            checkin: Check-in date
-            checkout: Check-out date
-            
-        Returns:
-            bool: True if available, False otherwise
-    
+
+    def is_available_for_dates(self, checkin: date, checkout: date) -> bool:
         if checkout <= checkin:
             raise ValueError("Check-out date must be after check-in date")
-        
-        # Generate all dates in the range
-        currentdate = checkin
-        datestocheck = set()
-        
-        while currentdate < checkout:
-            datestocheck.add(currentdate)
-            currentdate = date.fromordinal(currentdate.toordinal() + 1)
-        
-        # Check for conflicts
-        return not bool(datestocheck.intersection(self.bookeddates))
-    
-    def getdetails(self) -> Dict[str, Any]:
-    
-        Get comprehensive details about the room.
-        
-        Returns:
-            Dict containing room details
-    
+        dates_to_check = {date.fromordinal(i) for i in range(checkin.toordinal(), checkout.toordinal())}
+        return not bool(dates_to_check & self._booked_dates)
+
+    def get_details(self) -> Dict[str, Any]:
         return {
-            "roomnumber": self.roomnumber,
-            "roomtype": self.roomtype,
-            "pricepernight": self.pricepernight,
-            "amenities": self.amenities,
-            "isavailable": self.isavailable
+            "room_number": self._room_number,
+            "room_type": self._room_type,
+            "price_per_night": self._price_per_night,
+            "amenities": self._amenities,
+            "is_available": self._is_available
         }
-    
-    def str(self) -> str:
-    Return a string representation of the Room object."""
-        amenitiesstr = ", ".join(self.amenities) if self.amenities else "None"
-        availability = "Available" if self.isavailable else "Not Available"
-        
-        return (f"Room {self.roomnumber} ({self.roomtype}): "
-                f"${self.pricepernight:.2f} per night, "
-                f"Amenities: {amenitiesstr}, "
+
+    def __str__(self) -> str:
+        amenities_str = ", ".join(self._amenities) if self._amenities else "None"
+        availability = "Available" if self._is_available else "Not Available"
+        return (f"Room {self._room_number} ({self._room_type}): "
+                f"${self._price_per_night:.2f} per night, "
+                f"Amenities: {amenities_str}, "
                 f"Status: {availability}")
