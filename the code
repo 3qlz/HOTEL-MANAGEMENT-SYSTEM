@@ -1,116 +1,128 @@
 from datetime import date
-from typing import List, Dict, Any, Set
+from typing import List, Set
 
+
+# ===============================
+# Guest Class
+# ===============================
+class Guest:
+    def __init__(self, name: str, email: str, phone: str):
+        self._name = name
+        self._email = email
+        self._phone = phone
+        self._loyalty_points = 0
+        self._bookings: List[Booking] = []
+
+    def add_booking(self, booking: 'Booking'):
+        self._bookings.append(booking)
+        self._loyalty_points += 10
+
+    def get_booking_history(self) -> List['Booking']:
+        return self._bookings
+
+    def __str__(self):
+        return f"Guest: {self._name}, Email: {self._email}, Loyalty Points: {self._loyalty_points}"
+
+
+# ===============================
+# Room Class
+# ===============================
 class Room:
-    """
-    Class representing a hotel room in the Royal Stay Hotel Management System.
-
-    This class manages room information including room details, pricing, and availability.
-    """
-
-    VALID_ROOM_TYPES = {"single", "double", "twin", "suite", "deluxe", "executive"}
-    COMMON_AMENITIES = {
-        "wifi", "tv", "airconditioning", "minibar", "safe", "bathroom",
-        "bathtub", "shower", "hairdryer", "roomservice", "coffeemaker"
-    }
-
-    def __init__(self, room_number: int, room_type: str, price_per_night: float, amenities: List[str] = None) -> None:
-        if room_type.lower() not in self.VALID_ROOM_TYPES:
-            raise ValueError(f"Invalid room type. Must be one of: {', '.join(self.VALID_ROOM_TYPES)}")
-        if price_per_night < 0:
-            raise ValueError("Price per night cannot be negative")
-
+    def __init__(self, room_number: int, room_type: str, price_per_night: float, amenities: List[str] = None):
         self._room_number = room_number
-        self._room_type = room_type.lower()
+        self._room_type = room_type
         self._price_per_night = price_per_night
         self._amenities = amenities if amenities else []
         self._is_available = True
-        self._booked_dates = set()
-
-    @property
-    def room_number(self) -> int:
-        return self._room_number
-
-    @property
-    def room_type(self) -> str:
-        return self._room_type
-
-    @room_type.setter
-    def room_type(self, value: str) -> None:
-        value = value.lower()
-        if value not in self.VALID_ROOM_TYPES:
-            raise ValueError(f"Invalid room type. Must be one of: {', '.join(self.VALID_ROOM_TYPES)}")
-        self._room_type = value
-
-    @property
-    def amenities(self) -> List[str]:
-        return self._amenities.copy()
-
-    def add_amenity(self, amenity: str) -> None:
-        amenity = amenity.lower()
-        if amenity not in self._amenities:
-            self._amenities.append(amenity)
-
-    def remove_amenity(self, amenity: str) -> bool:
-        amenity = amenity.lower()
-        if amenity in self._amenities:
-            self._amenities.remove(amenity)
-            return True
-        return False
-
-    @property
-    def price_per_night(self) -> float:
-        return self._price_per_night
-
-    @price_per_night.setter
-    def price_per_night(self, value: float) -> None:
-        if value < 0:
-            raise ValueError("Price per night cannot be negative")
-        self._price_per_night = value
-
-    @property
-    def is_available(self) -> bool:
-        return self._is_available
-
-    @is_available.setter
-    def is_available(self, value: bool) -> None:
-        self._is_available = value
+        self._booked_dates: Set[date] = set()
 
     def book_dates(self, checkin: date, checkout: date) -> bool:
-        if checkout <= checkin:
-            raise ValueError("Check-out date must be after check-in date")
-        dates_to_book = {date.fromordinal(i) for i in range(checkin.toordinal(), checkout.toordinal())}
-        if dates_to_book & self._booked_dates:
+        new_dates = {date.fromordinal(i) for i in range(checkin.toordinal(), checkout.toordinal())}
+        if new_dates & self._booked_dates:
             return False
-        self._booked_dates.update(dates_to_book)
+        self._booked_dates.update(new_dates)
         return True
 
     def cancel_booking(self, checkin: date, checkout: date) -> bool:
-        if checkout <= checkin:
-            raise ValueError("Check-out date must be after check-in date")
-        dates_to_cancel = {date.fromordinal(i) for i in range(checkin.toordinal(), checkout.toordinal())}
-        self._booked_dates -= dates_to_cancel
+        cancel_dates = {date.fromordinal(i) for i in range(checkin.toordinal(), checkout.toordinal())}
+        self._booked_dates -= cancel_dates
         return True
 
     def is_available_for_dates(self, checkin: date, checkout: date) -> bool:
-        if checkout <= checkin:
-            raise ValueError("Check-out date must be after check-in date")
-        dates_to_check = {date.fromordinal(i) for i in range(checkin.toordinal(), checkout.toordinal())}
-        return not bool(dates_to_check & self._booked_dates)
+        test_dates = {date.fromordinal(i) for i in range(checkin.toordinal(), checkout.toordinal())}
+        return not bool(test_dates & self._booked_dates)
 
-    def get_details(self) -> Dict[str, Any]:
-        return {
-            "room_number": self._room_number,
-            "room_type": self._room_type,
-            "price_per_night": self._price_per_night,
-            "amenities": self._amenities,
-            "is_available": self._is_available
-        }
+    def __str__(self):
+        return f"Room {self._room_number} ({self._room_type}) - ${self._price_per_night}/night"
 
-    def __str__(self) -> str:
-        amenities_str = ", ".join(self._amenities) if self._amenities else "None"
-        availability = "Available" if self._is_available else "Not Available"
-        return (f"Room {self._room_number} ({self._room_type}): "
-                f"${self._price_per_night:.2f} per night, "
-                f"Amenities: {amenities_str}, "
-                f"Status: {availability}")
+
+# ===============================
+# Booking Class
+# ===============================
+class Booking:
+    def __init__(self, booking_id: str, room: Room, checkin: date, checkout: date):
+        self._booking_id = booking_id
+        self._room = room
+        self._checkin = checkin
+        self._checkout = checkout
+        self._status = "confirmed"
+
+    def cancel(self):
+        self._status = "cancelled"
+
+    def __str__(self):
+        return f"Booking {self._booking_id}: {self._room} from {self._checkin} to {self._checkout} [{self._status}]"
+
+
+# ===============================
+# Invoice Class
+# ===============================
+class Invoice:
+    def __init__(self, invoice_id: str, booking: Booking, additional_charges: float = 0.0, discount: float = 0.0):
+        self._invoice_id = invoice_id
+        self._booking = booking
+        self._additional_charges = additional_charges
+        self._discount = discount
+
+    def calculate_total(self) -> float:
+        nights = (self._booking._checkout - self._booking._checkin).days
+        base = nights * self._booking._room._price_per_night
+        return max(0, base + self._additional_charges - self._discount)
+
+    def __str__(self):
+        return f"Invoice {self._invoice_id}: Total = ${self.calculate_total():.2f}"
+
+
+# ===============================
+# Payment Class
+# ===============================
+class Payment:
+    def __init__(self, payment_id: str, invoice: Invoice, method: str):
+        self._payment_id = payment_id
+        self._invoice = invoice
+        self._method = method
+        self._status = "pending"
+
+    def process_payment(self):
+        self._status = "paid"
+
+    def __str__(self):
+        return f"Payment {self._payment_id} | Method: {self._method} | Status: {self._status}"
+
+
+# ===============================
+# ServiceRequest Class
+# ===============================
+class ServiceRequest:
+    def __init__(self, request_id: str, guest_email: str, service_type: str, request_date: date):
+        self._request_id = request_id
+        self._guest_email = guest_email
+        self._service_type = service_type
+        self._request_date = request_date
+        self._status = "pending"
+
+    def mark_completed(self):
+        self._status = "completed"
+
+    def __str__(self):
+        return f"Request {self._request_id} | {self._service_type} for {self._guest_email} on {self._request_date} [{self._status}]"
